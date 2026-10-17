@@ -68,3 +68,25 @@ Week 1
 | + DisplayInfo() : void                |
 +---------------------------------------+
 ```
+
+## **III. Set of 5 CRC cards **
+
+| Class | Responsibilities | Collaborations |
+| :---- | :---- | :---- |
+| **LibraryItem** | • Manage identity metadata (Id, Title, Author)<br>• Encapsulate availability changes via MarkAsBorrowed() and MarkAsReturned()<br>• Define the abstract template method for overdue fee calculation CalculateOverdueFee() | PhysicalBook, EBook, Loan |
+| **PhysicalBook** | • Manage shelf location and ISBN code<br>• Implement overdue fee formula: days * 5,000 VND | LibraryItem (inheritance) |
+| **EBook** | • Manage file size<br>• Implement overdue fee exemption policy: Always return 0 VND | LibraryItem (inheritance) |
+| **Member** | • Manage patron information (Id, FullName)<br>• Set and enforce maximum borrow limit (MaxBorrowLimit = 3) | Loan |
+| **Loan** | • Link patron and item via MemberId and ItemId<br>• Define loan duration (14 days) and detect overdue status (IsOverdue)<br>• Encapsulate return finalization (actual return date and fine) via CompleteReturn() | Member, LibraryItem |
+
+---
+
+## **IV. MINIMUM TEST PLAN**
+
+In accordance with the **Minimum Test Cases** requirements:
+
+| Test | Test Inputs | Expected Assertions |
+| :---- | :---- | :---- |
+| **1. Happy Path Scenario** | - Member M001 (borrow count = 0)<br>- Physical book B001 (IsAvailable = true)<br>- Borrow period: 14 days, returned after 7 days. | - Newly created Loan has status Active<br>- B001.IsAvailable transitions to false<br>- M001.CurrentlyBorrowedCount increments from 0 to 1<br>- Upon return: Loan status becomes returned, penalty = 0 VND, book unlocked (IsAvailable = true), M001 borrow count decrements to 0. |
+| **2. Validation / Error Rejection** | **Scenario A:** Member M001 attempts to borrow B001 while IsAvailable == false<br>**Scenario B:** Member M002 currently holding 3 items attempts to borrow a 4th | - **Scenario A:** Throws InvalidOperationException: Item is already borrowed; no new Loan created<br>- **Scenario B:** Throws InvalidOperationException: Member limit exceeded (Max 3); item state remains unchanged |
+| **3. Polymorphism / Inheritance Verification** | - Both overdue by 5 days<br>- Loan 1: LibraryItem is a PhysicalBook<br>- Loan 2: LibraryItem is an EBook | - Loan 1: item.CalculateOverdueFee(5) returns 25,000 VND<br>- Loan 2: item.CalculateOverdueFee(5) returns 0 VND |
