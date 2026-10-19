@@ -182,7 +182,6 @@ namespace LibraryManagementSystem
                 $"[EBook       ] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Size: {FileSizeMB,5} MB | Status: {status}");
         }
     }
-}
 
     // Member (Maximum of 3 books allowed per checkout)
     public class Member
@@ -779,7 +778,7 @@ namespace LibraryManagementSystem
             Console.WriteLine("=================================================================");
         }
     }
-}
+
     internal class Program
     {
         private static LibraryService _lib = null!;
@@ -930,4 +929,4 @@ namespace LibraryManagementSystem
             }
         }
     }
-
+}
