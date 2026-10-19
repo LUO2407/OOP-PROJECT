@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,147 +7,184 @@ using System.Text;
 
 namespace LibraryManagementSystem
 {
-
-// Abstract base class representing all library items    
-public abstract class LibraryItem
-{
-    public string Id { get; private set; }
-    public string Title { get; private set; }
-    public string Author { get; private set; }
-    public bool IsAvailable { get; protected set; }
-
-    protected LibraryItem(string id, string title, string author, bool isAvailable = true)
+    // Abstract base class representing all library items
+    public abstract class LibraryItem
     {
-        Id = id.Trim();
-        Title = title.Trim();
-        Author = author.Trim();
-        IsAvailable = isAvailable;
-    }
+        public string Id { get; private set; }
+        public string Title { get; private set; }
+        public string Author { get; private set; }
+        public bool IsAvailable { get; protected set; }
 
-    // Encapsulation: Manage the borrowing status of an item
-    public void MarkAsBorrowed()
-    {
-        if (!IsAvailable)
+        protected LibraryItem(
+            string id,
+            string title,
+            string author,
+            bool isAvailable = true)
         {
-            throw new InvalidOperationException($"Item '{Title}' (ID: {Id}) is currently borrowed!");
+            Id = id.Trim();
+            Title = title.Trim();
+            Author = author.Trim();
+            IsAvailable = isAvailable;
         }
-        IsAvailable = false;
-    }
 
-    // Encapsulation: Manage the return status of an item
-    public void MarkAsReturned()
-    {
-        if (IsAvailable)
+        // Encapsulation: Manage the borrowing status of an item
+        public void MarkAsBorrowed()
         {
-            throw new InvalidOperationException($"Item '{Title}' (ID: {Id}) is already in the library!");
+            if (!IsAvailable)
+            {
+                throw new InvalidOperationException(
+                    $"Item '{Title}' (ID: {Id}) is currently borrowed!");
+            }
+
+            IsAvailable = false;
         }
-        IsAvailable = true;
-    }
 
-    // Polymorphism: Declare abstract methods
-    // Derived classes must override these methods and provide their own implementations
-    public abstract decimal CalculateOverdueFee(int overdueDays);
-    public abstract string GetItemType();
-    public abstract string ToDataString();
-    public abstract void DisplayInfo();
-}
-
-// Traditional printed book (inherits from LibraryItem)
-public class PhysicalBook : LibraryItem
-{
-    public const decimal DailyFine = 5000m; // Fine of 5,000 VND per overdue day
-    public string ShelfLocation { get; private set; }
-    public string ISBN { get; private set; }
-
-    public PhysicalBook(string id, string title, string author, bool isAvailable, string shelf, string isbn)
-        : base(id, title, author, isAvailable)
-    {
-        ShelfLocation = shelf.Trim();
-        ISBN = isbn.Trim();
-    }
-
-    // Polymorphism: Physical books are fined 5,000 VND for each overdue day
-    public override decimal CalculateOverdueFee(int overdueDays)
-    {
-        if (overdueDays > 0)
+        // Encapsulation: Manage the return status of an item
+        public void MarkAsReturned()
         {
-            return overdueDays * DailyFine;
+            if (IsAvailable)
+            {
+                throw new InvalidOperationException(
+                    $"Item '{Title}' (ID: {Id}) is already in the library!");
+            }
+
+            IsAvailable = true;
         }
-        else
+
+        // Polymorphism: Declare abstract methods
+        // Derived classes must override these methods
+        public abstract decimal CalculateOverdueFee(int overdueDays);
+        public abstract string GetItemType();
+        public abstract string ToDataString();
+        public abstract void DisplayInfo();
+    }
+
+    // Traditional printed book (inherits from LibraryItem)
+    public class PhysicalBook : LibraryItem
+    {
+        public const decimal DailyFine = 5000m;
+
+        public string ShelfLocation { get; private set; }
+        public string ISBN { get; private set; }
+
+        public PhysicalBook(
+            string id,
+            string title,
+            string author,
+            bool isAvailable,
+            string shelf,
+            string isbn)
+            : base(id, title, author, isAvailable)
+        {
+            ShelfLocation = shelf.Trim();
+            ISBN = isbn.Trim();
+        }
+
+        // Polymorphism: Physical books are fined 5,000 VND per overdue day
+        public override decimal CalculateOverdueFee(int overdueDays)
+        {
+            if (overdueDays > 0)
+            {
+                return overdueDays * DailyFine;
+            }
+            else
+            {
+                return 0m;
+            }
+        }
+
+        public override string GetItemType()
+        {
+            return "PhysicalBook";
+        }
+
+        public override string ToDataString()
+        {
+            return "PHYSICAL|"
+                + Id + "|"
+                + Title + "|"
+                + Author + "|"
+                + IsAvailable + "|"
+                + ShelfLocation + "|"
+                + ISBN;
+        }
+
+        public override void DisplayInfo()
+        {
+            string status = "";
+
+            if (IsAvailable)
+            {
+                status = "Available";
+            }
+            else
+            {
+                status = "Borrowed";
+            }
+
+            Console.WriteLine(
+                $"[PhysicalBook] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Shelf: {ShelfLocation,-10} | ISBN: {ISBN,-14} | Status: {status}");
+        }
+    }
+
+    // Electronic book (E-Book), which inherits from LibraryItem
+    public class EBook : LibraryItem
+    {
+        public double FileSizeMB { get; private set; }
+
+        public EBook(
+            string id,
+            string title,
+            string author,
+            bool isAvailable,
+            double fileSizeMB)
+            : base(id, title, author, isAvailable)
+        {
+            FileSizeMB = fileSizeMB;
+        }
+
+        // Polymorphism: E-Books are exempt from overdue fines
+        public override decimal CalculateOverdueFee(int overdueDays)
         {
             return 0m;
         }
-    }
 
-    public override string GetItemType()
-    {
-        return "PhysicalBook";
-    }
-
-    public override string ToDataString()
-    {
-        return "PHYSICAL|" + Id + "|" + Title + "|" + Author + "|" + IsAvailable + "|" + ShelfLocation + "|" + ISBN;
-    }
-
-    public override void DisplayInfo()
-    {
-        string status = "";
-        if (IsAvailable)
+        public override string GetItemType()
         {
-            status = "Available";
-        }
-        else
-        {
-            status = "Borrowed";
+            return "EBook";
         }
 
-        Console.WriteLine($"[PhysicalBook] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Shelf: {ShelfLocation,-10} | ISBN: {ISBN,-14} | Status: {status}");
+        public override string ToDataString()
+        {
+            return "EBOOK|"
+                + Id + "|"
+                + Title + "|"
+                + Author + "|"
+                + IsAvailable + "|"
+                + FileSizeMB.ToString(
+                    "0.0",
+                    CultureInfo.InvariantCulture);
+        }
+
+        public override void DisplayInfo()
+        {
+            string status = "";
+
+            if (IsAvailable)
+            {
+                status = "Available";
+            }
+            else
+            {
+                status = "Borrowed";
+            }
+
+            Console.WriteLine(
+                $"[EBook       ] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Size: {FileSizeMB,5} MB | Status: {status}");
+        }
     }
 }
 
-// Electronic book (E-Book), which inherits from LibraryItem
-public class EBook : LibraryItem
-{
-    public double FileSizeMB { get; private set; }
-
-    public EBook(string id, string title, string author, bool isAvailable, double fileSizeMB)
-        : base(id, title, author, isAvailable)
-    {
-        FileSizeMB = fileSizeMB;
-    }
-
-    // Polymorphism: E-Books are exempt from overdue fines
-    public override decimal CalculateOverdueFee(int overdueDays)
-    {
-        return 0m;
-    }
-
-    public override string GetItemType()
-    {
-        return "EBook";
-    }
-
-    public override string ToDataString()
-    {
-        return "EBOOK|" + Id + "|" + Title + "|" + Author + "|" + IsAvailable + "|" + FileSizeMB.ToString("0.0", CultureInfo.InvariantCulture);
-    }
-
-    public override void DisplayInfo()
-    {
-        string status = "";
-        if (IsAvailable)
-        {
-            status = "Available";
-        }
-        else
-        {
-            status = "Borrowed";
-        }
-
-        Console.WriteLine($"[EBook       ] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Size: {FileSizeMB,5} MB | Status: {status}");
-    }
-}
-   
     // Member (Maximum of 3 books allowed per checkout)
     public class Member
     {
