@@ -780,3 +780,154 @@ namespace LibraryManagementSystem
         }
     }
 }
+    internal class Program
+    {
+        private static LibraryService _lib = null!;
+
+        static void Main(string[] args)
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            _lib = new LibraryService("Data");
+
+            while (true)
+            {
+                Console.WriteLine("\n=======================================================");
+                Console.WriteLine("       LIBRARY MANAGEMENT SYSTEM - CLI (WEEK 2)        ");
+                Console.WriteLine("=======================================================");
+                Console.WriteLine(" 1. Display All Books");
+                Console.WriteLine(" 2. Search Books (Title, Author, ISBN)");
+                Console.WriteLine(" 3. Display All Members");
+                Console.WriteLine(" 4. Borrow Book (Max 3 books, 14-day loan)");
+                Console.WriteLine(" 5. Return Book & Calculate Overdue Fine");
+                Console.WriteLine(" 6. Run 3 Automated Minimum Test Cases");
+                Console.WriteLine(" 0. Save & Exit");
+                Console.WriteLine("-------------------------------------------------------");
+                Console.Write("Enter your choice [0-6]: ");
+
+                string? choice = Console.ReadLine();
+
+                if (choice != null)
+                {
+                    choice = choice.Trim();
+                }
+
+                if (choice == "0")
+                {
+                    _lib.SaveAll();
+                    Console.WriteLine("\n[INFO] All data saved. Goodbye!");
+                    break;
+                }
+
+                try
+                {
+                    switch (choice)
+                    {
+                        case "1":
+                            Console.WriteLine("\n--- LIBRARY BOOKS CATALOG ---");
+
+                            foreach (LibraryItem b in _lib.Items)
+                            {
+                                b.DisplayInfo();
+                            }
+
+                            break;
+
+                        case "2":
+                            Console.Write("\nEnter search keyword: ");
+                            string kw = Console.ReadLine() ?? "";
+
+                            List<LibraryItem> res = _lib.SearchBooks(kw);
+
+                            Console.WriteLine($"Found {res.Count} matching item(s):");
+
+                            foreach (LibraryItem b in res)
+                            {
+                                b.DisplayInfo();
+                            }
+
+                            break;
+
+                        case "3":
+                            Console.WriteLine("\n--- REGISTERED MEMBERS ---");
+
+                            foreach (Member m in _lib.Members)
+                            {
+                                m.DisplayInfo(_lib.GetActiveBorrowCount(m.Id));
+                            }
+
+                            break;
+
+                        case "4":
+                            Console.Write("\nEnter Member ID: ");
+                            string mId = Console.ReadLine() ?? "";
+
+                            Console.Write("Enter Book ID: ");
+                            string bId = Console.ReadLine() ?? "";
+
+                            Loan loan = _lib.BorrowBook(mId, bId);
+
+                            Console.WriteLine(
+                                $"[SUCCESS] Loan created! ID: {loan.LoanId}, " +
+                                $"Due Date: {loan.DueDate:yyyy-MM-dd}"
+                            );
+
+                            break;
+
+                        case "5":
+                            Console.Write("\nEnter Loan ID to return: ");
+                            string lId = Console.ReadLine() ?? "";
+
+                            Console.Write("Simulate overdue days (Enter 0 for today): ");
+                            int lateDays = 0;
+                            int.TryParse(Console.ReadLine(), out lateDays);
+
+                            DateTime retDate;
+
+                            if (lateDays > 0)
+                            {
+                                Loan? target = _lib.FindLoan(lId);
+
+                                if (target != null)
+                                {
+                                    retDate = target.DueDate.AddDays(lateDays);
+                                }
+                                else
+                                {
+                                    retDate = DateTime.Now;
+                                }
+                            }
+                            else
+                            {
+                                retDate = DateTime.Now;
+                            }
+
+                            var ret = _lib.ReturnBook(lId, retDate);
+
+                            Console.WriteLine(
+                                $"[SUCCESS] Returned '{ret.item.Title}'. " +
+                                $"Overdue: {ret.overdueDays} days. " +
+                                $"Fine: {ret.fine:N0} VND."
+                            );
+
+                            break;
+
+                        case "6":
+                            _lib.RunAutomatedTests();
+                            break;
+
+                        default:
+                            Console.WriteLine(
+                                "[ERROR] Invalid selection, please choose [0-6]."
+                            );
+
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"\n[ERROR] {ex.Message}");
+                }
+            }
+        }
+    }
+
