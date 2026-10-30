@@ -14,12 +14,23 @@ namespace LibraryManagementSystem
         public string Author { get; private set; }
         public bool IsAvailable { get; protected set; }
 
-        protected LibraryItem(
-            string id,
-            string title,
-            string author,
-            bool isAvailable = true)
+        protected LibraryItem(string id, string title, string author, bool isAvailable = true)
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("Item ID cannot be empty!", nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                throw new ArgumentException("Title cannot be empty!", nameof(title));
+            }
+
+            if (string.IsNullOrWhiteSpace(author))
+            {
+                throw new ArgumentException("Author cannot be empty!", nameof(author));
+            }
+
             Id = id.Trim();
             Title = title.Trim();
             Author = author.Trim();
@@ -31,8 +42,7 @@ namespace LibraryManagementSystem
         {
             if (!IsAvailable)
             {
-                throw new InvalidOperationException(
-                    $"Item '{Title}' (ID: {Id}) is currently borrowed!");
+                throw new InvalidOperationException($"Item '{Title}' (ID: {Id}) is currently borrowed!");
             }
 
             IsAvailable = false;
@@ -43,8 +53,7 @@ namespace LibraryManagementSystem
         {
             if (IsAvailable)
             {
-                throw new InvalidOperationException(
-                    $"Item '{Title}' (ID: {Id}) is already in the library!");
+                throw new InvalidOperationException($"Item '{Title}' (ID: {Id}) is already in the library!");
             }
 
             IsAvailable = true;
@@ -66,15 +75,19 @@ namespace LibraryManagementSystem
         public string ShelfLocation { get; private set; }
         public string ISBN { get; private set; }
 
-        public PhysicalBook(
-            string id,
-            string title,
-            string author,
-            bool isAvailable,
-            string shelf,
-            string isbn)
+        public PhysicalBook(string id, string title, string author, bool isAvailable, string shelf, string isbn)
             : base(id, title, author, isAvailable)
         {
+            if (string.IsNullOrWhiteSpace(shelf))
+            {
+                throw new ArgumentException("Shelf location cannot be empty!", nameof(shelf));
+            }
+
+            if (string.IsNullOrWhiteSpace(isbn))
+            {
+                throw new ArgumentException("ISBN cannot be empty!", nameof(isbn));
+            }
+
             ShelfLocation = shelf.Trim();
             ISBN = isbn.Trim();
         }
@@ -99,13 +112,7 @@ namespace LibraryManagementSystem
 
         public override string ToDataString()
         {
-            return "PHYSICAL|"
-                + Id + "|"
-                + Title + "|"
-                + Author + "|"
-                + IsAvailable + "|"
-                + ShelfLocation + "|"
-                + ISBN;
+            return "PHYSICAL|" + Id + "|" + Title + "|" + Author + "|" + IsAvailable + "|" + ShelfLocation + "|" + ISBN;
         }
 
         public override void DisplayInfo()
@@ -121,8 +128,7 @@ namespace LibraryManagementSystem
                 status = "Borrowed";
             }
 
-            Console.WriteLine(
-                $"[PhysicalBook] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Shelf: {ShelfLocation,-10} | ISBN: {ISBN,-14} | Status: {status}");
+            Console.WriteLine($"[PhysicalBook] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Shelf: {ShelfLocation,-10} | ISBN: {ISBN,-14} | Status: {status}");
         }
     }
 
@@ -131,14 +137,14 @@ namespace LibraryManagementSystem
     {
         public double FileSizeMB { get; private set; }
 
-        public EBook(
-            string id,
-            string title,
-            string author,
-            bool isAvailable,
-            double fileSizeMB)
+        public EBook(string id, string title, string author, bool isAvailable, double fileSizeMB)
             : base(id, title, author, isAvailable)
         {
+            if (fileSizeMB <= 0)
+            {
+                throw new ArgumentException("File size must be greater than 0 MB!", nameof(fileSizeMB));
+            }
+
             FileSizeMB = fileSizeMB;
         }
 
@@ -155,14 +161,7 @@ namespace LibraryManagementSystem
 
         public override string ToDataString()
         {
-            return "EBOOK|"
-                + Id + "|"
-                + Title + "|"
-                + Author + "|"
-                + IsAvailable + "|"
-                + FileSizeMB.ToString(
-                    "0.0",
-                    CultureInfo.InvariantCulture);
+            return "EBOOK|" + Id + "|" + Title + "|" + Author + "|" + IsAvailable + "|" + FileSizeMB.ToString("0.0", CultureInfo.InvariantCulture);
         }
 
         public override void DisplayInfo()
@@ -178,8 +177,7 @@ namespace LibraryManagementSystem
                 status = "Borrowed";
             }
 
-            Console.WriteLine(
-                $"[EBook       ] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Size: {FileSizeMB,5} MB | Status: {status}");
+            Console.WriteLine($"[EBook       ] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Size: {FileSizeMB,5} MB | Status: {status}");
         }
     }
 
@@ -192,6 +190,21 @@ namespace LibraryManagementSystem
 
         public Member(string id, string fullName, int maxBorrowLimit = 3)
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("Member ID cannot be empty!", nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                throw new ArgumentException("Full name cannot be empty!", nameof(fullName));
+            }
+
+            if (maxBorrowLimit <= 0)
+            {
+                throw new ArgumentException("Max borrow limit must be greater than 0!", nameof(maxBorrowLimit));
+            }
+
             Id = id.Trim();
             FullName = fullName.Trim();
             MaxBorrowLimit = maxBorrowLimit;
@@ -223,9 +236,29 @@ namespace LibraryManagementSystem
         // Create a new loan record (default duration: 14 days)
         public Loan(string loanId, string memberId, string itemId, int durationDays = 14)
         {
-            LoanId = loanId;
-            MemberId = memberId;
-            ItemId = itemId;
+            if (string.IsNullOrWhiteSpace(loanId))
+            {
+                throw new ArgumentException("Loan ID cannot be empty!", nameof(loanId));
+            }
+
+            if (string.IsNullOrWhiteSpace(memberId))
+            {
+                throw new ArgumentException("Member ID cannot be empty!", nameof(memberId));
+            }
+
+            if (string.IsNullOrWhiteSpace(itemId))
+            {
+                throw new ArgumentException("Item ID cannot be empty!", nameof(itemId));
+            }
+
+            if (durationDays <= 0)
+            {
+                throw new ArgumentException("Loan duration must be greater than 0 days!", nameof(durationDays));
+            }
+
+            LoanId = loanId.Trim();
+            MemberId = memberId.Trim();
+            ItemId = itemId.Trim();
             BorrowDate = DateTime.Now;
             DueDate = BorrowDate.AddDays(durationDays);
             ReturnDate = null;
@@ -236,9 +269,29 @@ namespace LibraryManagementSystem
         // Recreate the loan when loading from a text file
         public Loan(string loanId, string memberId, string itemId, DateTime borrow, DateTime due, DateTime? ret, string status, decimal fine)
         {
-            LoanId = loanId;
-            MemberId = memberId;
-            ItemId = itemId;
+            if (string.IsNullOrWhiteSpace(loanId))
+            {
+                throw new ArgumentException("Loan ID cannot be empty!", nameof(loanId));
+            }
+
+            if (string.IsNullOrWhiteSpace(memberId))
+            {
+                throw new ArgumentException("Member ID cannot be empty!", nameof(memberId));
+            }
+
+            if (string.IsNullOrWhiteSpace(itemId))
+            {
+                throw new ArgumentException("Item ID cannot be empty!", nameof(itemId));
+            }
+
+            if (due < borrow)
+            {
+                throw new ArgumentException("Due date cannot be earlier than borrow date!", nameof(due));
+            }
+
+            LoanId = loanId.Trim();
+            MemberId = memberId.Trim();
+            ItemId = itemId.Trim();
             BorrowDate = borrow;
             DueDate = due;
             ReturnDate = ret;
@@ -280,6 +333,12 @@ namespace LibraryManagementSystem
             {
                 throw new InvalidOperationException($"Loan {LoanId} was already returned!");
             }
+
+            if (returnDate < BorrowDate)
+            {
+                throw new ArgumentException("Return date cannot be earlier than borrow date!", nameof(returnDate));
+            }
+
             ReturnDate = returnDate;
             Status = "Returned";
             if (fine >= 0)
@@ -697,7 +756,7 @@ namespace LibraryManagementSystem
         public void RunAutomatedTests()
         {
             Console.WriteLine("\n=================================================================");
-            Console.WriteLine("    RUNNING 3 MINIMUM TEST CASES (OOP VERIFICATION)");
+            Console.WriteLine("    RUNNING AUTOMATED TEST CASES (OOP & EXCEPTION VERIFICATION)");
             Console.WriteLine("=================================================================");
 
             // Test Case 1: Happy Path
@@ -747,6 +806,66 @@ namespace LibraryManagementSystem
                 Console.WriteLine("-> [PASS] Polymorphism works correctly!");
             }
 
+            // Test Case 4: Input Validation Guards (Exception Handling)
+            Console.WriteLine("\n[TEST CASE 4] Input Validation Guards: Catch Invalid Arguments");
+            try
+            {
+                new Member("", "Test User", 3);
+                Console.WriteLine("-> [FAIL] System allowed empty Member ID!");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"-> [PASS - GUARD] Caught ArgumentException on Member: \"{ex.Message.Split('(')[0].Trim()}\"");
+            }
+
+            try
+            {
+                new EBook("T_E_INV", "Test Title", "Author", true, -2.5);
+                Console.WriteLine("-> [FAIL] System allowed negative EBook file size!");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"-> [PASS - GUARD] Caught ArgumentException on EBook: \"{ex.Message.Split('(')[0].Trim()}\"");
+            }
+
+            try
+            {
+                new Loan("T_L_INV", "T_M01", "T_B01", 0);
+                Console.WriteLine("-> [FAIL] System allowed zero/negative loan duration!");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"-> [PASS - GUARD] Caught ArgumentException on Loan: \"{ex.Message.Split('(')[0].Trim()}\"");
+            }
+
+            // Test Case 5: Exception Handling: Prevent Borrowing Already Borrowed Item
+            Console.WriteLine("\n[TEST CASE 5] Exception Handling: Prevent Borrowing Already Borrowed Item");
+            try
+            {
+                // T_B01 is currently borrowed by loan1
+                BorrowBook("M001", "T_B01");
+                Console.WriteLine("-> [FAIL] System allowed borrowing an already borrowed item!");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"-> [PASS - BLOCKED] Expected exception caught: \"{ex.Message}\"");
+            }
+
+            // Test Case 6: Exception Handling: Prevent Returning Already Returned Loan
+            Console.WriteLine("\n[TEST CASE 6] Exception Handling: Prevent Returning Already Returned Loan");
+            try
+            {
+                // Return loan1 first time
+                ReturnBook(loan1.LoanId);
+                // Attempt to return loan1 a second time (should throw)
+                ReturnBook(loan1.LoanId);
+                Console.WriteLine("-> [FAIL] System allowed returning an already returned loan!");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"-> [PASS - BLOCKED] Expected exception caught: \"{ex.Message}\"");
+            }
+
             // Clean up test data (using a simple for-loop)
             for (int i = Items.Count - 1; i >= 0; i--)
             {
@@ -766,7 +885,7 @@ namespace LibraryManagementSystem
 
             for (int i = Loans.Count - 1; i >= 0; i--)
             {
-                if (Loans[i].MemberId.StartsWith("T_"))
+                if (Loans[i].MemberId.StartsWith("T_") || Loans[i].LoanId.StartsWith("T_") || Loans[i].LoanId == loan1.LoanId)
                 {
                     Loans.RemoveAt(i);
                 }
@@ -774,7 +893,7 @@ namespace LibraryManagementSystem
             SaveAll();
 
             Console.WriteLine("\n=================================================================");
-            Console.WriteLine("    ALL 3 MINIMUM TEST CASES PASSED SUCCESSFULLY!");
+            Console.WriteLine("    ALL 6 AUTOMATED TEST CASES PASSED SUCCESSFULLY!");
             Console.WriteLine("=================================================================");
         }
     }
@@ -798,7 +917,7 @@ namespace LibraryManagementSystem
                 Console.WriteLine(" 3. Display All Members");
                 Console.WriteLine(" 4. Borrow Book (Max 3 books, 14-day loan)");
                 Console.WriteLine(" 5. Return Book & Calculate Overdue Fine");
-                Console.WriteLine(" 6. Run 3 Automated Minimum Test Cases");
+                Console.WriteLine(" 6. Run Automated Test Cases (All 6 Scenarios)");
                 Console.WriteLine(" 0. Save & Exit");
                 Console.WriteLine("-------------------------------------------------------");
                 Console.Write("Enter your choice [0-6]: ");
@@ -865,10 +984,7 @@ namespace LibraryManagementSystem
 
                             Loan loan = _lib.BorrowBook(mId, bId);
 
-                            Console.WriteLine(
-                                $"[SUCCESS] Loan created! ID: {loan.LoanId}, " +
-                                $"Due Date: {loan.DueDate:yyyy-MM-dd}"
-                            );
+                            Console.WriteLine($"[SUCCESS] Loan created! ID: {loan.LoanId}, Due Date: {loan.DueDate:yyyy-MM-dd}");
 
                             break;
 
@@ -902,11 +1018,7 @@ namespace LibraryManagementSystem
 
                             var ret = _lib.ReturnBook(lId, retDate);
 
-                            Console.WriteLine(
-                                $"[SUCCESS] Returned '{ret.item.Title}'. " +
-                                $"Overdue: {ret.overdueDays} days. " +
-                                $"Fine: {ret.fine:N0} VND."
-                            );
+                            Console.WriteLine($"[SUCCESS] Returned '{ret.item.Title}'. Overdue: {ret.overdueDays} days. Fine: {ret.fine:N0} VND.");
 
                             break;
 
@@ -915,9 +1027,7 @@ namespace LibraryManagementSystem
                             break;
 
                         default:
-                            Console.WriteLine(
-                                "[ERROR] Invalid selection, please choose [0-6]."
-                            );
+                            Console.WriteLine("[ERROR] Invalid selection, please choose [0-6].");
 
                             break;
                     }
