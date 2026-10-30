@@ -14,7 +14,11 @@ namespace LibraryManagementSystem
         public string Author { get; private set; }
         public bool IsAvailable { get; protected set; }
 
-        protected LibraryItem(string id, string title, string author, bool isAvailable = true)
+        protected LibraryItem(
+            string id,
+            string title,
+            string author,
+            bool isAvailable = true)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -42,7 +46,8 @@ namespace LibraryManagementSystem
         {
             if (!IsAvailable)
             {
-                throw new InvalidOperationException($"Item '{Title}' (ID: {Id}) is currently borrowed!");
+                throw new InvalidOperationException(
+                    $"Item '{Title}' (ID: {Id}) is currently borrowed!");
             }
 
             IsAvailable = false;
@@ -57,6 +62,17 @@ namespace LibraryManagementSystem
             }
 
             IsAvailable = true;
+        }
+
+        // Polymorphism (Week 3): Virtual method, by default an item matches by Title or Author
+        // Derived classes can override it to search more fields
+        public virtual bool MatchesKeyword(string keyword)
+        {
+            string k = keyword.Trim().ToLower();
+            bool matchTitle = Title.ToLower().Contains(k);
+            bool matchAuthor = Author.ToLower().Contains(k);
+
+            return matchTitle || matchAuthor;
         }
 
         // Polymorphism: Declare abstract methods
@@ -75,8 +91,7 @@ namespace LibraryManagementSystem
         public string ShelfLocation { get; private set; }
         public string ISBN { get; private set; }
 
-        public PhysicalBook(string id, string title, string author, bool isAvailable, string shelf, string isbn)
-            : base(id, title, author, isAvailable)
+        public PhysicalBook(string id, string title, string author, bool isAvailable, string shelf, string isbn) : base(id, title, author, isAvailable)
         {
             if (string.IsNullOrWhiteSpace(shelf))
             {
@@ -90,6 +105,18 @@ namespace LibraryManagementSystem
 
             ShelfLocation = shelf.Trim();
             ISBN = isbn.Trim();
+        }
+
+        // Polymorphism (Week 3): Physical books also match by ISBN
+        public override bool MatchesKeyword(string keyword)
+        {
+            if (base.MatchesKeyword(keyword))
+            {
+                return true;
+            }
+
+            string k = keyword.Trim().ToLower();
+            return ISBN.ToLower().Contains(k);
         }
 
         // Polymorphism: Physical books are fined 5,000 VND per overdue day
@@ -137,7 +164,12 @@ namespace LibraryManagementSystem
     {
         public double FileSizeMB { get; private set; }
 
-        public EBook(string id, string title, string author, bool isAvailable, double fileSizeMB)
+        public EBook(
+            string id,
+            string title,
+            string author,
+            bool isAvailable,
+            double fileSizeMB)
             : base(id, title, author, isAvailable)
         {
             if (fileSizeMB <= 0)
@@ -161,7 +193,14 @@ namespace LibraryManagementSystem
 
         public override string ToDataString()
         {
-            return "EBOOK|" + Id + "|" + Title + "|" + Author + "|" + IsAvailable + "|" + FileSizeMB.ToString("0.0", CultureInfo.InvariantCulture);
+            return "EBOOK|"
+                + Id + "|"
+                + Title + "|"
+                + Author + "|"
+                + IsAvailable + "|"
+                + FileSizeMB.ToString(
+                    "0.0",
+                    CultureInfo.InvariantCulture);
         }
 
         public override void DisplayInfo()
@@ -177,7 +216,7 @@ namespace LibraryManagementSystem
                 status = "Borrowed";
             }
 
-            Console.WriteLine($"[EBook       ] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Size: {FileSizeMB,5} MB | Status: {status}");
+            Console.WriteLine($"[EBook] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Size: {FileSizeMB,5} MB | Status: {status}");
         }
     }
 
@@ -371,8 +410,8 @@ namespace LibraryManagementSystem
             Console.WriteLine($"Loan ID: {LoanId,-5} | Member: {MemberId,-5} | Book: {ItemId,-5} | Due: {DueDate:yyyy-MM-dd} | Status: {Status,-8} | Fine: {FineAmount:N0} VND");
         }
     }
-    
-     // Plain text file storage ( .txt files)
+
+    // Plain text file storage ( .txt files)
     public class FileService
     {
         private readonly string _dir;
@@ -642,6 +681,7 @@ namespace LibraryManagementSystem
         }
 
         // Search for books by Title, Author, or ISBN
+        // Week 3: Uses polymorphism (MatchesKeyword), no need to check "is PhysicalBook" anymore
         public List<LibraryItem> SearchBooks(string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
@@ -649,25 +689,11 @@ namespace LibraryManagementSystem
                 return Items;
             }
 
-            string k = keyword.Trim().ToLower();
             List<LibraryItem> results = new List<LibraryItem>();
 
             foreach (LibraryItem item in Items)
             {
-                bool matchTitle = item.Title.ToLower().Contains(k);
-                bool matchAuthor = item.Author.ToLower().Contains(k);
-                bool matchIsbn = false;
-
-                if (item is PhysicalBook)
-                {
-                    PhysicalBook pb = (PhysicalBook)item;
-                    if (pb.ISBN.ToLower().Contains(k))
-                    {
-                        matchIsbn = true;
-                    }
-                }
-
-                if (matchTitle || matchAuthor || matchIsbn)
+                if (item.MatchesKeyword(keyword))
                 {
                     results.Add(item);
                 }
@@ -752,7 +778,7 @@ namespace LibraryManagementSystem
             return (loan, fine, overdueDays, item);
         }
 
-        // Running 3 minimum test cases
+        // Running automated test cases (OOP & exception verification)
         public void RunAutomatedTests()
         {
             Console.WriteLine("\n=================================================================");
@@ -840,10 +866,12 @@ namespace LibraryManagementSystem
 
             // Test Case 5: Exception Handling: Prevent Borrowing Already Borrowed Item
             Console.WriteLine("\n[TEST CASE 5] Exception Handling: Prevent Borrowing Already Borrowed Item");
+            // Use a second test member so the 3-book limit of T_M01 does not interfere
+            Members.Add(new Member("T_M02", "Test User 2", 3));
             try
             {
                 // T_B01 is currently borrowed by loan1
-                BorrowBook("M001", "T_B01");
+                BorrowBook("T_M02", "T_B01");
                 Console.WriteLine("-> [FAIL] System allowed borrowing an already borrowed item!");
             }
             catch (InvalidOperationException ex)
@@ -910,7 +938,7 @@ namespace LibraryManagementSystem
             while (true)
             {
                 Console.WriteLine("\n=======================================================");
-                Console.WriteLine("       LIBRARY MANAGEMENT SYSTEM - CLI (WEEK 2)        ");
+                Console.WriteLine("          LIBRARY MANAGEMENT SYSTEM                      ");
                 Console.WriteLine("=======================================================");
                 Console.WriteLine(" 1. Display All Books");
                 Console.WriteLine(" 2. Search Books (Title, Author, ISBN)");
@@ -918,9 +946,10 @@ namespace LibraryManagementSystem
                 Console.WriteLine(" 4. Borrow Book (Max 3 books, 14-day loan)");
                 Console.WriteLine(" 5. Return Book & Calculate Overdue Fine");
                 Console.WriteLine(" 6. Run Automated Test Cases (All 6 Scenarios)");
+                Console.WriteLine(" 7. View All Loan Records");
                 Console.WriteLine(" 0. Save & Exit");
                 Console.WriteLine("-------------------------------------------------------");
-                Console.Write("Enter your choice [0-6]: ");
+                Console.Write("Enter your choice [0-7]: ");
 
                 string? choice = Console.ReadLine();
 
@@ -984,7 +1013,10 @@ namespace LibraryManagementSystem
 
                             Loan loan = _lib.BorrowBook(mId, bId);
 
-                            Console.WriteLine($"[SUCCESS] Loan created! ID: {loan.LoanId}, Due Date: {loan.DueDate:yyyy-MM-dd}");
+                            Console.WriteLine(
+                                $"[SUCCESS] Loan created! ID: {loan.LoanId}, " +
+                                $"Due Date: {loan.DueDate:yyyy-MM-dd}"
+                            );
 
                             break;
 
@@ -1018,7 +1050,11 @@ namespace LibraryManagementSystem
 
                             var ret = _lib.ReturnBook(lId, retDate);
 
-                            Console.WriteLine($"[SUCCESS] Returned '{ret.item.Title}'. Overdue: {ret.overdueDays} days. Fine: {ret.fine:N0} VND.");
+                            Console.WriteLine(
+                                $"[SUCCESS] Returned '{ret.item.Title}'. " +
+                                $"Overdue: {ret.overdueDays} days. " +
+                                $"Fine: {ret.fine:N0} VND."
+                            );
 
                             break;
 
@@ -1026,8 +1062,25 @@ namespace LibraryManagementSystem
                             _lib.RunAutomatedTests();
                             break;
 
+                        case "7":
+                            Console.WriteLine("\n--- ALL LOAN RECORDS ---");
+
+                            if (_lib.Loans.Count == 0)
+                            {
+                                Console.WriteLine("No loan records found.");
+                            }
+
+                            foreach (Loan rec in _lib.Loans)
+                            {
+                                rec.DisplayInfo();
+                            }
+
+                            break;
+
                         default:
-                            Console.WriteLine("[ERROR] Invalid selection, please choose [0-6].");
+                            Console.WriteLine(
+                                "[ERROR] Invalid selection, please choose [0-7]."
+                            );
 
                             break;
                     }
