@@ -21,19 +21,6 @@ Pham Nguyen Thuy Tram Report
 - The program loops through all loans and calls the existing `Loan.DisplayInfo()` method.
 - If there are no loan records, it displays `"No loan records found."`.
 
-### Input Validation Checks
-
-- **LibraryItem:** Throws `ArgumentException` if ID, Title, or Author is empty or contains only whitespace.
-- **PhysicalBook / EBook:** Checks that ShelfLocation and ISBN are not empty, and FileSizeMB is greater than 0.
-- **Member:** Checks that ID and FullName are not empty, and MaxBorrowLimit is greater than 0.
-- **Loan:** Checks that IDs are not empty, loan duration is greater than 0, and dates are valid (DueDate >= BorrowDate, ReturnDate >= BorrowDate).
-
-### Automated Tests (Expanded from 3 to 6)
-
-- **Test 4:** Invalid inputs trigger `ArgumentException`.
-- **Tests 5 and 6:** Borrowing an unavailable item or returning a loan twice triggers `InvalidOperationException`.
-- Test data is deleted after execution to keep `books.txt`, `members.txt`, and `loans.txt` clean.
-
 ### Class Diagram Update
 
 - `PhysicalBook` and `EBook` inherit from `LibraryItem`. `PhysicalBook` overrides `MatchesKeyword()`.
