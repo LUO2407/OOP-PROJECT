@@ -1,7 +1,6 @@
-  WEEK 3 REPORT
----
-Group progress sumary (week 3)
-In Week 3, we completed adding input validation guards across the `LibraryItem`, `Member`, and `Loan` classes to proactively throw exceptions when empty or invalid data is detected. Additionally, I expanded the `RunAutomatedTests()` method from 3 to 6 automated test scenarios to accurately verify exception handling cases while adding an automatic cleanup mechanism for test data. We authored the exception handling section and compiled the complete Week 3 report.
+# WEEK 3 REPORT
+### Group Progress Summary (Week 3)
+<sub>- In Week 3, we completed adding input validation guards across the <code>LibraryItem</code>, <code>Member</code>, and <code>Loan</code> classes to proactively throw exceptions when empty or invalid data is detected. Additionally, I expanded the <code>RunAutomatedTests()</code> method from 3 to 6 automated test scenarios to accurately verify exception handling cases while adding an automatic cleanup mechanism for test data. We authored the exception handling section and compiled the complete Week 3 report.</sub>
 ---
 | Member | Assigned Tasks |
 | :--- | :--- |
