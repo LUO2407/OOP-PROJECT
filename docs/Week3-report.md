@@ -1,5 +1,8 @@
   WEEK 3 REPORT
 ---
+Group progress sumary (week 3)
+In Week 3, we completed adding input validation guards across the `LibraryItem`, `Member`, and `Loan` classes to proactively throw exceptions when empty or invalid data is detected. Additionally, I expanded the `RunAutomatedTests()` method from 3 to 6 automated test scenarios to accurately verify exception handling cases while adding an automatic cleanup mechanism for test data. We authored the exception handling section and compiled the complete Week 3 report.
+---
 | Member | Assigned Tasks |
 | :--- | :--- |
 | **Phạm Nguyễn Thùy Trâm** | • **Search Refactoring & CLI Menu:** Refactor `SearchBooks()` using polymorphism (removing manual `is PhysicalBook` type-checking) and integrate the existing `Loan.DisplayInfo()` method into `Program.Main()` to view loan records.<br>• **Documentation & Class Diagram:** Update the class design diagram and author the code refactoring explanation for the Week 3 Report. |
