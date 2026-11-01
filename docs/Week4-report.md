@@ -13,7 +13,6 @@
 - **Audiobook class:** Added `Audiobook : LibraryItem` with `DailyFine = 3000m`, `Narrator` and `DurationMinutes`. It overrides `MatchesKeyword` (also matches Narrator), `CalculateOverdueFee` (overdue days × 3,000 VND, or 0 when not overdue), `GetItemType`, `ToDataString` and `DisplayInfo`.
 - **No change to legacy item classes:** `LibraryItem`, `PhysicalBook` and `EBook` are untouched. `SearchBooks`, `ReturnBook`, `SaveBooks` and the menu already work through a `LibraryItem` reference, so they handle `Audiobook` automatically.
 - **Data invariants:** the constructor rejects an empty narrator and a duration ≤ 0 with `ArgumentException`, on top of the checks inherited from `LibraryItem` (ID, title, author).
-- **Sample data:** added two sample audiobooks (A001, A002) to `SeedInitialData` for demonstration.
 - **UML Class Diagram:** drawn from the C# code and submitted as a separate file.
 
 ### 2. Before / after comparison
@@ -55,6 +54,10 @@
 | `ToDataString()` | `abstract` | `override`: PHYSICAL\|... | `override`: EBOOK\|... | `override`: AUDIOBOOK\|... |
 | `DisplayInfo()` | `abstract` | `override`: Shelf, ISBN | `override`: Size (MB) | `override`: Narrator, Duration |
 | Own members |  | `DailyFine`, `ShelfLocation`, `ISBN` | `FileSizeMB` | `DailyFine`, `Narrator`, `DurationMinutes` |
+
+## IV. UML draft
+
+![Benchmark Results](Image.png)
 
 ---
 ## LE THIEN LUAN REPORT
