@@ -220,6 +220,89 @@ namespace LibraryManagementSystem
         }
     }
 
+    // Audiobook, which inherits from LibraryItem
+    public class Audiobook : LibraryItem
+    {
+        public const decimal DailyFine = 3000m;
+
+        public string Narrator { get; private set; }
+        public int DurationMinutes { get; private set; }
+
+        public Audiobook(
+            string id,
+            string title,
+            string author,
+            bool isAvailable,
+            string narrator,
+            int durationMinutes)
+            : base(id, title, author, isAvailable)
+        {
+            if (string.IsNullOrWhiteSpace(narrator))
+            {
+                throw new ArgumentException("Narrator cannot be empty!", nameof(narrator));
+            }
+
+            if (durationMinutes <= 0)
+            {
+                throw new ArgumentException("Duration must be greater than 0 minutes!", nameof(durationMinutes));
+            }
+
+            Narrator = narrator.Trim();
+            DurationMinutes = durationMinutes;
+        }
+
+        // Audiobooks also match by Narrator
+        public override bool MatchesKeyword(string keyword)
+        {
+            if (base.MatchesKeyword(keyword))
+            {
+                return true;
+            }
+
+            string k = keyword.Trim().ToLower();
+            return Narrator.ToLower().Contains(k);
+        }
+
+        // Audiobooks are fined 3,000 VND per overdue day
+        public override decimal CalculateOverdueFee(int overdueDays)
+        {
+            if (overdueDays > 0)
+            {
+                return overdueDays * DailyFine;
+            }
+            else
+            {
+                return 0m;
+            }
+        }
+
+        public override string GetItemType()
+        {
+            return "Audiobook";
+        }
+
+        public override string ToDataString()
+        {
+            return "AUDIOBOOK|" + Id + "|" + Title + "|" + Author + "|" + IsAvailable + "|" + Narrator + "|" + DurationMinutes;
+        }
+
+        public override void DisplayInfo()
+        {
+            string status = "";
+
+            if (IsAvailable)
+            {
+                status = "Available";
+            }
+            else
+            {
+                status = "Borrowed";
+            }
+
+            Console.WriteLine($"[Audiobook] ID: {Id,-5} | Title: {Title,-32} | Author: {Author,-16} | Narrator: {Narrator,-16} | Duration: {DurationMinutes,4} min | Status: {status}");
+        }
+    }
+
     // Member (Maximum of 3 books allowed per checkout)
     public class Member
     {
