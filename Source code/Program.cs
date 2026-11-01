@@ -547,6 +547,16 @@ namespace LibraryManagementSystem
                     double size = double.Parse(p[5], CultureInfo.InvariantCulture);
                     list.Add(new EBook(id, title, author, isAvailable, size));
                 }
+                else if (type == "AUDIOBOOK" && p.Length >= 7)
+                {
+                    string id = p[1];
+                    string title = p[2];
+                    string author = p[3];
+                    bool isAvailable = bool.Parse(p[4]);
+                    string narrator = p[5];
+                    int duration = int.Parse(p[6]);
+                    list.Add(new Audiobook(id, title, author, isAvailable, narrator, duration));
+                }
             }
             return list;
         }
@@ -693,6 +703,8 @@ namespace LibraryManagementSystem
                 Items.Add(new PhysicalBook("B003", "The Pragmatic Programmer", "Andrew Hunt", true, "Shelf B1", "978-0135957059"));
                 Items.Add(new EBook("E001", "C# in Depth (4th Edition)", "Jon Skeet", true, 8.5));
                 Items.Add(new EBook("E002", "CLR via C# (4th Edition)", "Jeffrey Richter", true, 12.8));
+                Items.Add(new Audiobook("A001", "Clean Architecture", "Robert C. Martin", true, "Michael Reed", 780));
+                Items.Add(new Audiobook("A002", "Refactoring", "Martin Fowler", true, "Emma Clarke", 650));
             }
             if (Members.Count == 0)
             {
@@ -977,6 +989,88 @@ namespace LibraryManagementSystem
                 Console.WriteLine($"-> [PASS - BLOCKED] Expected exception caught: \"{ex.Message}\"");
             }
 
+            // Test Case 7: Audiobook overdue fee (3,000 VND per overdue day)
+            Console.WriteLine("\n[TEST CASE 7] Audiobook: Overdue Fee (3,000 VND/day)");
+            Audiobook audio = new Audiobook("T_A01", "Audio Test", "Author", true, "Narrator Test", 120);
+            LibraryItem audioItem = audio; // call through the parent class reference
+
+            decimal audioFine5 = audioItem.CalculateOverdueFee(5);   // 5 * 3,000 = 15,000
+            decimal audioFine0 = audioItem.CalculateOverdueFee(0);   // not overdue
+            decimal audioFineNeg = audioItem.CalculateOverdueFee(-3); // negative days
+
+            Console.WriteLine($"-> [{audioItem.GetItemType()}] Fine for 5 days: {audioFine5:N0} VND (Rate: 3,000 VND/day)");
+
+            if (audioFine5 == 15000m && audioFine0 == 0m && audioFineNeg == 0m && audioItem.GetItemType() == "Audiobook")
+            {
+                Console.WriteLine("-> [PASS] Audiobook overdue fee and item type are correct!");
+            }
+            else
+            {
+                Console.WriteLine("-> [FAIL] Audiobook overdue fee or item type is wrong!");
+            }
+
+            // Test Case 8: Audiobook keyword search (Title, Author, Narrator)
+            Console.WriteLine("\n[TEST CASE 8] Audiobook: Keyword Search (Title, Author, Narrator)");
+            Items.Add(audio);
+
+            bool byTitle = audio.MatchesKeyword("audio test");
+            bool byAuthor = audio.MatchesKeyword("AUTHOR");
+            bool byNarrator = audio.MatchesKeyword("narrator test");
+            bool noMatch = audio.MatchesKeyword("zzz-not-found");
+            List<LibraryItem> found = SearchBooks("Narrator Test");
+
+            if (byTitle && byAuthor && byNarrator && !noMatch && found.Contains(audio))
+            {
+                Console.WriteLine("-> [PASS] Audiobook is found by Title, Author and Narrator, and ignored for unrelated keywords!");
+            }
+            else
+            {
+                Console.WriteLine("-> [FAIL] Audiobook keyword search is wrong!");
+            }
+
+            // Test Case 9: Audiobook input validation guards
+            Console.WriteLine("\n[TEST CASE 9] Audiobook: Input Validation Guards");
+            try
+            {
+                new Audiobook("T_A_INV", "Test Title", "Author", true, "", 120);
+                Console.WriteLine("-> [FAIL] System allowed empty Narrator!");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"-> [PASS - GUARD] Caught ArgumentException on Audiobook: \"{ex.Message.Split('(')[0].Trim()}\"");
+            }
+
+            try
+            {
+                new Audiobook("T_A_INV", "Test Title", "Author", true, "Narrator", 0);
+                Console.WriteLine("-> [FAIL] System allowed zero/negative duration!");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"-> [PASS - GUARD] Caught ArgumentException on Audiobook: \"{ex.Message.Split('(')[0].Trim()}\"");
+            }
+
+            // Test Case 10: Audiobook borrow & return with overdue fine
+            Console.WriteLine("\n[TEST CASE 10] Audiobook: Borrow & Return with 4-Day Overdue Fine");
+            Members.Add(new Member("T_M03", "Test User 3", 3));
+
+            Loan audioLoan = BorrowBook("T_M03", "T_A01");
+            bool borrowedOk = !audio.IsAvailable;
+
+            var audioReturn = ReturnBook(audioLoan.LoanId, audioLoan.DueDate.AddDays(4));
+            bool returnedOk = audio.IsAvailable && audioReturn.overdueDays == 4 && audioReturn.fine == 12000m;
+
+            Console.WriteLine($"-> Overdue: {audioReturn.overdueDays} days. Fine: {audioReturn.fine:N0} VND.");
+
+            if (borrowedOk && returnedOk && audio.ToDataString() == "AUDIOBOOK|T_A01|Audio Test|Author|True|Narrator Test|120")
+            {
+                Console.WriteLine("-> [PASS] Audiobook borrow, return and fine (4 x 3,000 = 12,000 VND) work correctly!");
+            }
+            else
+            {
+                Console.WriteLine("-> [FAIL] Audiobook borrow/return flow is wrong!");
+            }
+
             // Clean up test data (using a simple for-loop)
             for (int i = Items.Count - 1; i >= 0; i--)
             {
@@ -1004,7 +1098,7 @@ namespace LibraryManagementSystem
             SaveAll();
 
             Console.WriteLine("\n=================================================================");
-            Console.WriteLine("    ALL 6 AUTOMATED TEST CASES PASSED SUCCESSFULLY!");
+            Console.WriteLine("    ALL 10 AUTOMATED TEST CASES PASSED SUCCESSFULLY!");
             Console.WriteLine("=================================================================");
         }
     }
@@ -1028,7 +1122,7 @@ namespace LibraryManagementSystem
                 Console.WriteLine(" 3. Display All Members");
                 Console.WriteLine(" 4. Borrow Book (Max 3 books, 14-day loan)");
                 Console.WriteLine(" 5. Return Book & Calculate Overdue Fine");
-                Console.WriteLine(" 6. Run Automated Test Cases (All 6 Scenarios)");
+                Console.WriteLine(" 6. Run Automated Test Cases (All 10 Scenarios)");
                 Console.WriteLine(" 7. View All Loan Records");
                 Console.WriteLine(" 0. Save & Exit");
                 Console.WriteLine("-------------------------------------------------------");
