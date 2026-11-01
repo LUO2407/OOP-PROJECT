@@ -29,19 +29,19 @@
 ## II. Five Q&A pairs
 
 **Q1 (OCP). How does adding `Audiobook` follow the Open/Closed Principle?**
-`Audiobook` is a new subclass of `LibraryItem`; no line in `LibraryItem`, `PhysicalBook`, `EBook`, `Member`, `Loan` or `Program` was edited. Searching, fee calculation, saving and display already depend on the abstraction `LibraryItem`, so the system is open for extension and closed for modification.
+* **Answer:** `Audiobook` is a new subclass of `LibraryItem`; no line in `LibraryItem`, `PhysicalBook`, `EBook`, `Member`, `Loan` or `Program` was edited. Searching, fee calculation, saving and display already depend on the abstraction `LibraryItem`, so the system is open for extension and closed for modification.
 
 **Q2 (Polymorphism). How does `ReturnBook` charge 3,000 VND for an `Audiobook` but 5,000 VND for a `PhysicalBook`?**
-`ReturnBook` calls `item.CalculateOverdueFee(overdueDays)` on a `LibraryItem` reference. At run time the CLR dispatches to the override of the object's actual type, so no `if (item is PhysicalBook)` check is needed.
+* **Answer:** `ReturnBook` calls `item.CalculateOverdueFee(overdueDays)` on a `LibraryItem` reference. At run time the CLR dispatches to the override of the object's actual type, so no `if (item is PhysicalBook)` check is needed.
 
 **Q3 (Polymorphism). Why is `MatchesKeyword` `virtual` but `CalculateOverdueFee` `abstract`?**
-Searching by Title and Author makes sense for every item, so `MatchesKeyword` has a default body that subclasses may extend: `PhysicalBook` and `Audiobook` call `base.MatchesKeyword(keyword)` and then check ISBN or Narrator. Fee rules differ per type and have no sensible default, so `CalculateOverdueFee` is `abstract` and every concrete subclass must override it.
+* **Answer:** Searching by Title and Author makes sense for every item, so `MatchesKeyword` has a default body that subclasses may extend: `PhysicalBook` and `Audiobook` call `base.MatchesKeyword(keyword)` and then check ISBN or Narrator. Fee rules differ per type and have no sensible default, so `CalculateOverdueFee` is `abstract` and every concrete subclass must override it.
 
 **Q4 (UML). Which UML relationships describe this design?**
-Generalization (solid line, hollow triangle) from `PhysicalBook`, `EBook` and `Audiobook` to the abstract class `LibraryItem`, which is shown with `<<abstract>>` and italic name. Composition from `LibraryService` to `FileService` and its `Items`, `Members` and `Loans` lists, because it creates and owns them. Association from `Program` to `LibraryService`. `Loan` keeps only the string IDs `MemberId` and `ItemId`, so it links to `Member` and `LibraryItem` by ID rather than by object reference.
+* **Answer:** Generalization (solid line, hollow triangle) from `PhysicalBook`, `EBook` and `Audiobook` to the abstract class `LibraryItem`, which is shown with `<<abstract>>` and italic name. Composition from `LibraryService` to `FileService` and its `Items`, `Members` and `Loans` lists, because it creates and owns them. Association from `Program` to `LibraryService`. `Loan` keeps only the string IDs `MemberId` and `ItemId`, so it links to `Member` and `LibraryItem` by ID rather than by object reference.
 
 **Q5 (OCP/UML). What changes in the UML diagram when `Audiobook` is added?**
-Only one new class box (`Audiobook`) and one new generalization arrow to `LibraryItem` appear. No existing class or relationship has to change, which shows visually that the design is closed for modification and open for extension.
+* **Answer:** Only one new class box (`Audiobook`) and one new generalization arrow to `LibraryItem` appear. No existing class or relationship has to change, which shows visually that the design is closed for modification and open for extension.
 
 ## III. Inheritance & Polymorphism mapping table
 
