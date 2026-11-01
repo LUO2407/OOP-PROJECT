@@ -24,7 +24,7 @@
 | Overdue fee per day | 5,000 VND (physical), 0 VND (e-book) | Added 3,000 VND (audiobook) |
 | Keyword search | Title and Author, plus ISBN for physical books | Added Narrator for audiobooks, through `MatchesKeyword` |
 | Seed data | 3 physical books, 2 e-books | Added 2 audiobooks (A001, A002) |
-| Legacy item classes changed | – | None (`LibraryItem`, `PhysicalBook`, `EBook` untouched) |
+| Legacy item classes changed |  | None (`LibraryItem`, `PhysicalBook`, `EBook` untouched) |
 
 ## II. Five Q&A pairs
 
