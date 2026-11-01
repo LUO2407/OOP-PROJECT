@@ -48,9 +48,9 @@ The last two go slightly beyond a strict reading of "no legacy changes"; see sec
 | `GetItemType` | `abstract` | "PhysicalBook" | "EBook" | "Audiobook" |
 | `ToDataString` | `abstract` | PHYSICAL\|... | EBOOK\|... | AUDIOBOOK\|... |
 | `DisplayInfo` | `abstract` | Shelf, ISBN | Size (MB) | Narrator, Duration |
-| Own members | – | `DailyFine`, `ShelfLocation`, `ISBN` | `FileSizeMB` | `DailyFine`, `Narrator`, `DurationMinutes` |
+| Own members | | `DailyFine`, `ShelfLocation`, `ISBN` | `FileSizeMB` | `DailyFine`, `Narrator`, `DurationMinutes` |
 
-## 5. Five Q&A Pairs
+## 5. Five Q&A Pairs  
 
 **Q1 (OCP). How does adding `Audiobook` show the Open/Closed Principle?**
 It was added as a new subclass; no line in `LibraryItem`, `PhysicalBook`, `EBook`, `Member`, `Loan` or `Program` changed. Search, fees, saving and display already work through `LibraryItem`, so the system is open for extension and closed for modification.
