@@ -6,55 +6,55 @@
 | **Lê Thiện Luân** | • Integrate unit tests for `Audiobook`.<br>• Write the self-reflection, and finalize the Week 4 Report.<br>• Draft 5 Q&A pairs (focused on encapsulation, data invariants, and file persistence) and complete the encapsulation and abstraction mapping table. | 
 ---
 ## PHAM NGUYEN THUY TRAM REPORT 
-## 1. Task
+## I. Self-reflection and verification
 
-- Add `Audiobook` (extends `LibraryItem`, overdue fee 3,000 VND/day) without changing legacy classes.
-- Provide a UML Class Diagram (separate file).
-- Write 5 Q&A pairs and the Inheritance & Polymorphism mapping table.
+### 1. Summary of completed work
 
-## 2. Implementation
+- **Audiobook class:** Added `Audiobook : LibraryItem` with `DailyFine = 3000m`, `Narrator` and `DurationMinutes`. It overrides `MatchesKeyword` (also matches Narrator), `CalculateOverdueFee` (overdue days × 3,000 VND, or 0 when not overdue), `GetItemType`, `ToDataString` and `DisplayInfo`.
+- **No change to legacy item classes:** `LibraryItem`, `PhysicalBook` and `EBook` are untouched. `SearchBooks`, `ReturnBook`, `SaveBooks` and the menu already work through a `LibraryItem` reference, so they handle `Audiobook` automatically.
+- **Data invariants:** the constructor rejects an empty narrator and a duration ≤ 0 with `ArgumentException`, on top of the checks inherited from `LibraryItem` (ID, title, author).
+- **Sample data:** added two sample audiobooks (A001, A002) to `SeedInitialData` for demonstration.
+- **UML Class Diagram:** drawn from the C# code and submitted as a separate file.
 
-`Audiobook` is a new class in `Program.cs`, built like `PhysicalBook` and `EBook`.
+### 2. Before / after comparison
 
-- **Members:** `DailyFine = 3000m`, `Narrator`, `DurationMinutes` (validated in the constructor).
-- **Overrides:** `MatchesKeyword` (also matches Narrator), `CalculateOverdueFee` (days × 3000m), `GetItemType`, `ToDataString`, `DisplayInfo`.
-- **Integration:** existing code calls these through `LibraryItem`, so it works unchanged.
-
-## 3. Changes to the Original File
-
-95 lines added, none edited or removed.
-
-| Where | Change | Lines |
+| Comparison | Before | After |
 |---|---|---|
-| `Audiobook` class | New | 83 |
-| `FileService.LoadBooks` | New `AUDIOBOOK` branch | 10 |
-| `SeedInitialData` | Two sample audiobooks | 2 |
+| Item types | 2: `PhysicalBook`, `EBook` | 3: added `Audiobook` |
+| Overdue fee per day | 5,000 VND (physical), 0 VND (e-book) | Added 3,000 VND (audiobook) |
+| Keyword search | Title and Author, plus ISBN for physical books | Added Narrator for audiobooks, through `MatchesKeyword` |
+| Seed data | 3 physical books, 2 e-books | Added 2 audiobooks (A001, A002) |
+| Legacy item classes changed | – | None (`LibraryItem`, `PhysicalBook`, `EBook` untouched) |
 
-## 4. Inheritance & Polymorphism Mapping
+## II. Five Q&A pairs
 
-| Member | `LibraryItem` | `PhysicalBook` | `EBook` | `Audiobook` |
+**Q1 (OCP). How does adding `Audiobook` follow the Open/Closed Principle?**
+`Audiobook` is a new subclass of `LibraryItem`; no line in `LibraryItem`, `PhysicalBook`, `EBook`, `Member`, `Loan` or `Program` was edited. Searching, fee calculation, saving and display already depend on the abstraction `LibraryItem`, so the system is open for extension and closed for modification.
+
+**Q2 (Polymorphism). How does `ReturnBook` charge 3,000 VND for an `Audiobook` but 5,000 VND for a `PhysicalBook`?**
+`ReturnBook` calls `item.CalculateOverdueFee(overdueDays)` on a `LibraryItem` reference. At run time the CLR dispatches to the override of the object's actual type, so no `if (item is PhysicalBook)` check is needed.
+
+**Q3 (Polymorphism). Why is `MatchesKeyword` `virtual` but `CalculateOverdueFee` `abstract`?**
+Searching by Title and Author makes sense for every item, so `MatchesKeyword` has a default body that subclasses may extend: `PhysicalBook` and `Audiobook` call `base.MatchesKeyword(keyword)` and then check ISBN or Narrator. Fee rules differ per type and have no sensible default, so `CalculateOverdueFee` is `abstract` and every concrete subclass must override it.
+
+**Q4 (UML). Which UML relationships describe this design?**
+Generalization (solid line, hollow triangle) from `PhysicalBook`, `EBook` and `Audiobook` to the abstract class `LibraryItem`, which is shown with `<<abstract>>` and italic name. Composition from `LibraryService` to `FileService` and its `Items`, `Members` and `Loans` lists, because it creates and owns them. Association from `Program` to `LibraryService`. `Loan` keeps only the string IDs `MemberId` and `ItemId`, so it links to `Member` and `LibraryItem` by ID rather than by object reference.
+
+**Q5 (OCP/UML). What changes in the UML diagram when `Audiobook` is added?**
+Only one new class box (`Audiobook`) and one new generalization arrow to `LibraryItem` appear. No existing class or relationship has to change, which shows visually that the design is closed for modification and open for extension.
+
+## III. Inheritance & Polymorphism mapping table
+
+| Member | `LibraryItem` | `PhysicalBook` | `EBook` | `Audiobook` (new) |
 |---|---|---|---|---|
-| `Id`, `Title`, `Author`, `IsAvailable`, `MarkAs...()` | Concrete | Inherited | Inherited | Inherited |
-| `MatchesKeyword` | `virtual` | + ISBN | Uses base | + Narrator |
-| `CalculateOverdueFee` | `abstract` | days × 5,000 | 0 | days × 3,000 |
-| `GetItemType`, `ToDataString`, `DisplayInfo` | `abstract` | override | override | override |
-
-## 5. Q&A
-
-**Q1 (OCP). How does `Audiobook` show OCP?**
-It was added as a new subclass without editing existing item classes; the system is open for extension, closed for modification.
-
-**Q2 (Polymorphism). How does `ReturnBook` charge different fees per type?**
-It calls `item.CalculateOverdueFee(days)` on a `LibraryItem`; the CLR runs the override of the actual object type.
-
-**Q3 (Polymorphism). Why `virtual` for `MatchesKeyword` but `abstract` for `CalculateOverdueFee`?**
-Searching by Title/Author has a sensible default; fee rules differ per type and have none.
-
-**Q4 (UML). Which relationships are used?**
-Generalization (subclasses to `LibraryItem`), composition (`LibraryService` to its lists and `FileService`), dependency (class that only uses another). `Loan` stores only string IDs, so it has no arrow to `Member` or `LibraryItem`.
-
-**Q5 (OCP/UML). Why did `LoadBooks` need a new branch?**
-It only recognised `PHYSICAL` and `EBOOK`, so saved audiobooks were lost on restart. The `if/else if` on a type string is a hidden OCP violation; a factory or parser registry would avoid it.
+| `Id`, `Title`, `Author`, `IsAvailable` | Properties (validated in constructor) | Inherited | Inherited | Inherited |
+| `MarkAsBorrowed()`, `MarkAsReturned()` | Concrete methods | Inherited | Inherited | Inherited |
+| `MatchesKeyword(keyword)` | `virtual`: Title or Author | `override`: base or ISBN | Not overridden (uses base) | `override`: base or Narrator |
+| `CalculateOverdueFee(days)` | `abstract` | `override`: days × 5,000 | `override`: always 0 | `override`: days × 3,000 |
+| `GetItemType()` | `abstract` | `override`: "PhysicalBook" | `override`: "EBook" | `override`: "Audiobook" |
+| `ToDataString()` | `abstract` | `override`: PHYSICAL\|... | `override`: EBOOK\|... | `override`: AUDIOBOOK\|... |
+| `DisplayInfo()` | `abstract` | `override`: Shelf, ISBN | `override`: Size (MB) | `override`: Narrator, Duration |
+| Own members |  | `DailyFine`, `ShelfLocation`, `ISBN` | `FileSizeMB` | `DailyFine`, `Narrator`, `DurationMinutes` |
 
 ---
 ## LE THIEN LUAN REPORT
